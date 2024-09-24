@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laundromat Machine Status</title>
+    <style>
+        /* จัดกลุ่มเครื่องซักผ้าให้เป็นระเบียบ */
+        .machine-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .machine {
+            border: 1px solid #ccc;
+            padding: 20px;
+            text-align: center;
+        }
+
+        button {
+            padding: 10px;
+            background-color: #2de5d0;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #27cece;
+        }
+
+        .status {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <body onload="requestNotificationPermission()"> <!-- ขอสิทธิ์เมื่อเปิดหน้าเว็บ -->
+    <h1>Laundromat Machine Status</h1>
+ <!--<p id="timer1-4" class="time-left"> คือตัวนับเวลาถอยหลัง ในการหยุดเครื่องซักผ้า</p>-->
+    <!-- กล่องแสดงผลเครื่องซักผ้า -->
+     
+    <div class="machine-container">
+        <!-- เครื่องซักผ้า 1 -->
+        <div class="machine">
+            <h3>Machine 1</h3>
+            <button onclick="insertCoin(10, 1)">Insert 10 Baht Coin</button>
+            <p id="status1" class="status">Status: Available</p>
+            <p id="timer1" class="time-left"></p>
+        </div>
+
+        <!-- เครื่องซักผ้า 2 -->
+        <div class="machine">
+            <h3>Machine 2</h3>
+            <button onclick="insertCoin(10, 2)">Insert 10 Baht Coin</button>
+            <p id="status2" class="status">Status: Available</p>
+            <p id="timer2" class="time-left"></p>
+        </div>
+
+        <!-- เครื่องซักผ้า 3 -->
+        <div class="machine">
+            <h3>Machine 3</h3>
+            <button onclick="insertCoin(10, 3)">Insert 10 Baht Coin</button>
+            <p id="status3" class="status">Status: Available</p>
+            <p id="timer3" class="time-left"></p>
+        </div>
+
+        <!-- เครื่องซักผ้า 4 -->
+        <div class="machine">
+            <h3>Machine 4</h3>
+            <button onclick="insertCoin(10, 4)">Insert 10 Baht Coin</button>
+            <p id="status4" class="status">Status: Available</p>
+            <p id="timer4" class="time-left"></p>
+        </div>
+    </div>
+
+    <script>
+        
+        // ฟังก์ชันสำหรับใส่เหรียญและเริ่มการถอยหลังสำหรับเครื่องซักผ้า
+        function insertCoin(coinValue, machineId) {
+            // แสดงสถานะเริ่มทำงาน
+            document.getElementById(`status${machineId}`).textContent = "Status: In Use";
+            
+            // เริ่มการถอยหลัง
+            startCountdown(machineId, 1.2); //1 หน่วย คือ 1นาที
+        }
+
+        // ฟังก์ชันเริ่มการถอยหลัง *ใช้หน่วยเป็นวินาที*
+        function startCountdown(machineId, minutes) {
+            const timerElement = document.getElementById(`timer${machineId}`); // ดึงค่า element ที่จะแสดงเวลา
+            let timeLeft = minutes * 60; // แปลงนาทีเป็นวินาที
+        
+            //คำนวณเวลา
+            const countdownInterval = setInterval(() => {
+                const minutesLeft = Math.floor(timeLeft / 60);
+                const secondsLeft = timeLeft % 60;
+        
+                // แสดงเวลาถอยหลังบนหน้าเว็บ
+                timerElement.textContent = `Time left: ${minutesLeft}m ${secondsLeft}s`;
+        
+                // เมื่อเหลือ 1 นาที ส่งการแจ้งเตือน
+                if (timeLeft === 60) {
+                    sendLineNotification(machineId);
+                }
+        
+                if (timeLeft <= 0) { // เวลาหมดลง
+                    clearInterval(countdownInterval); // หยุดการถอยหลังเมื่อเวลาหมด
+                    timerElement.textContent = "Finished!"; // แสดงข้อความเสร็จสิ้น
+                    document.getElementById(`status${machineId}`).textContent = "Status: Available";
+                }
+                console.log(`Machine ${machineId} - Time left: ${minutesLeft}m ${secondsLeft}s`); // ตรวจสอบเวลาถอยหลัง
+
+   
+        
+                timeLeft--; // ลดเวลาทุกวินาที
+            }, 1000); // ทำงานทุก 1 วินาที
+            async function sendLineNotification(machineId) {
+                const response = await fetch(`/api/notify/${machineId}`, {
+                    method: 'POST',
+                });
+                if (response.ok) {
+                    console.log(`Notification sent for machine ${machineId}`);
+                } else {
+                    console.error('Failed to send notification');
+                }
+            }
+            
+        }
+    </script>
+</body>
+</html>
+        
